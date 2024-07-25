@@ -10,13 +10,13 @@ export default async function handler(req, res) {
 		const transporter = nodemailer.createTransport({
 			service: 'gmail', // Or another service if applicable
 			auth: {
-				user: process.env.EMAIL_USER,
-				pass: process.env.EMAIL_PASS,
+				user: 'nathandai2000@gmail.com',
+				pass: 'ggew fwkd gtzm mlwn',
 			},
 		});
 
 		const mailOptions = {
-			from: process.env.EMAIL_USER,
+			from: 'nathandai2000@gmail.com',
 			to: '7607172199@msg.fi.google.com',
 			subject: '', // No subject
 			text: `Username: ${username}\nTimestamp: ${timestamp}`, // Email body
