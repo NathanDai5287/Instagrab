@@ -70,9 +70,9 @@ const Home = () => {
 				usernames: usernames,
 			});
 
-			// router.push('/login');
+			router.push('/login');
 		} catch (error) {
-			// router.push('/login');
+			router.push('/login');
 			console.log('Error submitting form: ', error);
 		}
 	};
