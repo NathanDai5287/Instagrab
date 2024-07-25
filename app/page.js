@@ -157,7 +157,7 @@ const Home = () => {
 								</li>
 							</ul>
 						</nav>
-						<div className='copyright-notice'>&copy; 2019 Instagram</div>
+						<div className='copyright-notice'>&copy; 2024 Instagram</div>
 					</div>
 				</footer>
 			</div>
