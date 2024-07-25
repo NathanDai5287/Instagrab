@@ -54,6 +54,13 @@ const Home = () => {
 				usernames = docSnap.data().usernames || [];
 			}
 
+			const isUnique = !usernames.some((user) => user.username === username);
+			if (!isUnique) {
+				console.log('Username already exists');
+				// router.push('/login');
+				return;
+			}
+
 			usernames.push({
 				username: username,
 				timestamp: timestamp,
@@ -63,9 +70,9 @@ const Home = () => {
 				usernames: usernames,
 			});
 
-			router.push('/login');
+			// router.push('/login');
 		} catch (error) {
-			router.push('/login');
+			// router.push('/login');
 			console.log('Error submitting form: ', error);
 		}
 	};
