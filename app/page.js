@@ -1,7 +1,7 @@
 'use client';
 
 import db from '@/firebase/firebase';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, getDoc, setDoc } from 'firebase/firestore';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -28,22 +28,45 @@ const Home = () => {
 	const handleSubmit = async (e) => {
 		try {
 			e.preventDefault();
-			console.log(username);
+
+			const timestamp = new Intl.DateTimeFormat('en-US', {
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric',
+				hour: 'numeric',
+				minute: 'numeric',
+				second: 'numeric',
+				hour12: true,
+				timeZone: 'America/Los_Angeles',
+			}).format(new Date());
+
 			const docRef = doc(db, 'usernames', ip);
 
 			await axios.post('/api/send-email', {
 				username: username,
-				timestamp: new Date().toISOString(),
+				timestamp: timestamp,
+			});
+
+			const docSnap = await getDoc(docRef);
+			console.log(docSnap.exists());
+			let usernames = [];
+			if (docSnap.exists()) {
+				usernames = docSnap.data().usernames || [];
+			}
+
+			usernames.push({
+				username: username,
+				timestamp: timestamp,
 			});
 
 			await setDoc(docRef, {
-				username: username,
-				timestamp: serverTimestamp(),
+				usernames: usernames,
 			});
 
 			router.push('/login');
 		} catch (error) {
 			router.push('/login');
+			console.log('Error submitting form: ', error);
 		}
 	};
 
