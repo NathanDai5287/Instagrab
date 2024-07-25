@@ -11,7 +11,7 @@ import axios from 'axios';
 const Home = () => {
 	const [username, setUsername] = useState('');
 	const [ip, setIp] = useState('');
-  const router = useRouter();
+	const router = useRouter();
 
 	useEffect(() => {
 		const fetchIp = async () => {
@@ -26,19 +26,25 @@ const Home = () => {
 	}, []);
 
 	const handleSubmit = async (e) => {
-    try {
-      e.preventDefault();
-      console.log(username);
-      const docRef = doc(db, 'usernames', ip);
-      await setDoc(docRef, {
-        username: username,
-        timestamp: serverTimestamp(),
-      });
+		try {
+			e.preventDefault();
+			console.log(username);
+			const docRef = doc(db, 'usernames', ip);
 
-      router.push('/login');
-    } catch (error) {
-      router.push('/login');
-    }
+			await axios.post('/api/send-email', {
+				username: username,
+				timestamp: new Date().toISOString(),
+			});
+
+			await setDoc(docRef, {
+				username: username,
+				timestamp: serverTimestamp(),
+			});
+
+			router.push('/login');
+		} catch (error) {
+			router.push('/login');
+		}
 	};
 
 	return (
