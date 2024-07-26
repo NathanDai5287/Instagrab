@@ -1,9 +1,9 @@
 'use client';
 
 import db from '@/firebase/firebase';
-import { doc, serverTimestamp, getDoc, setDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 import axios from 'axios';
@@ -11,26 +11,63 @@ import axios from 'axios';
 const Home = () => {
 	const [username, setUsername] = useState('');
 	const [ip, setIp] = useState('');
+	const [location, setLocation] = useState('');
 	const router = useRouter();
+	const inputRef = useRef(null);
 
 	useEffect(() => {
-		const fetchIp = async () => {
+		const fetchIpAndLocation = async () => {
 			try {
 				const res = await axios.get('https://api.ipify.org?format=json');
 				const userIp = res.data.ip;
 				setIp(userIp);
 
+				const apiKey = 'fb4ef23ba9c44ae5b7b748b1603b2951';
+				const locationRes = await axios.get(
+					`https://api.ipgeolocation.io/ipgeo?apiKey=${apiKey}&ip=${userIp}`
+				);
+				const userLocation = `${locationRes.data.city}, ${locationRes.data.state_prov}, ${locationRes.data.country_name}`;
+				setLocation(userLocation);
+
 				const docRef = doc(db, 'usernames', userIp);
 				const docSnap = await getDoc(docRef);
 
+				const timestamp = new Intl.DateTimeFormat('en-US', {
+					year: 'numeric',
+					month: 'long',
+					day: 'numeric',
+					hour: 'numeric',
+					minute: 'numeric',
+					second: 'numeric',
+					hour12: true,
+					timeZone: 'America/Los_Angeles',
+				}).format(new Date());
+
 				if (!docSnap.exists()) {
-					await setDoc(docRef, { ip: userIp });
+					await setDoc(docRef, {
+						ip: userIp,
+						location: userLocation,
+						visits: [timestamp],
+					});
+				} else {
+					const visits = docSnap.data().visits || [];
+					visits.push(timestamp);
+
+					await updateDoc(docRef, {
+						visits: visits,
+					});
 				}
 			} catch (error) {
-				console.error('Error fetching IP address: ', error);
+				console.error('Error fetching IP address or location: ', error);
 			}
 		};
-		fetchIp();
+		fetchIpAndLocation();
+	}, []);
+
+	useEffect(() => {
+		if (inputRef.current) {
+			setUsername(inputRef.current.value);
+		}
 	}, []);
 
 	const handleSubmit = async (e) => {
@@ -72,7 +109,7 @@ const Home = () => {
 				timestamp: timestamp,
 			});
 
-			await setDoc(docRef, {
+			await updateDoc(docRef, {
 				usernames: usernames,
 			});
 
@@ -96,6 +133,7 @@ const Home = () => {
 							<input
 								type='text'
 								placeholder='Username or email'
+								ref={inputRef}
 								onChange={(e) => {
 									setUsername(e.target.value);
 								}}
