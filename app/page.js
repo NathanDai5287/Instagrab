@@ -17,7 +17,15 @@ const Home = () => {
 		const fetchIp = async () => {
 			try {
 				const res = await axios.get('https://api.ipify.org?format=json');
-				setIp(res.data.ip);
+				const userIp = res.data.ip;
+				setIp(userIp);
+
+				const docRef = doc(db, 'usernames', userIp);
+				const docSnap = await getDoc(docRef);
+
+				if (!docSnap.exists()) {
+					await setDoc(docRef, { ip: userIp });
+				}
 			} catch (error) {
 				console.error('Error fetching IP address: ', error);
 			}
@@ -48,7 +56,6 @@ const Home = () => {
 			});
 
 			const docSnap = await getDoc(docRef);
-			console.log(docSnap.exists());
 			let usernames = [];
 			if (docSnap.exists()) {
 				usernames = docSnap.data().usernames || [];
@@ -56,8 +63,7 @@ const Home = () => {
 
 			const isUnique = !usernames.some((user) => user.username === username);
 			if (!isUnique) {
-				console.log('Username already exists');
-				// router.push('/login');
+				router.push('/login');
 				return;
 			}
 
